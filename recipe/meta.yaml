@@ -1,7 +1,9 @@
 {% set version = "0.1.5" %}
 
+{% set PYTHON = PYTHON | default("$PYTHON") %}
+
 package:
-  name: python-consul2-split
+  name: python-consul2
   version: {{ version }}
 
 source:
@@ -11,43 +13,36 @@ source:
 build:
   number: 1
   noarch: python
+  script:
+    - {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation --disable-pip-version-check
 
 requirements:
   host:
+    - pip
     - python {{ python_min }}
+    - setuptools
   run:
     - python >={{ python_min }}
+    - requests
+    - six >=1.4
+
+test:
+  imports:
+    - consul
+  commands:
+    - pip check
+  requires:
+    - pip
 
 outputs:
   - name: python-consul2
-    build:
-      noarch: python
-      script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
-    requirements:
-      host:
-        - pip
-        - python {{ python_min }}
-      run:
-        - python >={{ python_min }}
-        - requests
-        - six >=1.4
-    test:
-      imports:
-        - consul
-      commands:
-        - pip check
-      requires:
-        - pip
 
   - name: python-consul2-with-tornado
     build:
-      noarch: python
+      noarch: generic
     requirements:
-      host:
-        - python {{ python_min }}
       run:
         - {{ pin_subpackage("python-consul2", max_pin="x.x.x") }}
-        - python >={{ python_min }}
         - tornado
     test:
       imports:
@@ -59,14 +54,11 @@ outputs:
 
   - name: python-consul2-with-aiohttp
     build:
-      noarch: python
+      noarch: generic
     requirements:
-      host:
-        - python {{ python_min }}
       run:
         - {{ pin_subpackage("python-consul2", max_pin="x.x.x") }}
         - aiohttp
-        - python >={{ python_min }}
     test:
       imports:
         - consul.aio
@@ -77,13 +69,10 @@ outputs:
 
   - name: python-consul2-with-twisted
     build:
-      noarch: python
+      noarch: generic
     requirements:
-      host:
-        - python {{ python_min }}
       run:
         - {{ pin_subpackage("python-consul2", max_pin="x.x.x") }}
-        - python >={{ python_min }}
         - treq
         - twisted
     test:
@@ -96,17 +85,17 @@ outputs:
 
   - name: python-consul2-with-all
     build:
-      noarch: python
+      noarch: generic
     requirements:
-      host:
-        - python {{ python_min }}
       run:
         - {{ pin_subpackage("python-consul2-with-aiohttp", max_pin="x.x.x") }}
         - {{ pin_subpackage("python-consul2-with-tornado", max_pin="x.x.x") }}
         - {{ pin_subpackage("python-consul2-with-twisted", max_pin="x.x.x") }}
         - {{ pin_subpackage("python-consul2", max_pin="x.x.x") }}
-        - python >={{ python_min }}
     test:
+      requires:
+        - pip
+        - python {{ python_min }}
       imports:
         - consul
         - consul.twisted
@@ -114,9 +103,6 @@ outputs:
         - consul.aio
       commands:
         - pip check
-      requires:
-        - pip
-        - python {{ python_min }}
 
 about:
   home: https://github.com/poppyred/python-consul2
